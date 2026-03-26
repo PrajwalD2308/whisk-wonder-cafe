@@ -4,29 +4,43 @@ import { useState } from "react";
 import Image from "next/image";
 import { menuData } from "../data/menuData";
 
+// ✅ TYPES
+type MenuItem = {
+  id: number;
+  name: string;
+  price: number;
+  image: string;
+  desc: string;
+  features?: string[];
+};
+
 export default function MenuCardPage() {
   const [search, setSearch] = useState("");
 
-  // ✅ RECURSIVE FUNCTION (IMPORTANT)
-  const extractItems = (data: any): any[] => {
-    let result: any[] = [];
+  // ✅ RECURSIVE FUNCTION (TYPED)
+  const extractItems = (data: unknown): MenuItem[] => {
+    let result: MenuItem[] = [];
 
-    Object.values(data).forEach((value: any) => {
-      if (Array.isArray(value)) {
-        result.push(...value);
-      } else if (typeof value === "object") {
+    if (!data) return result;
+
+    if (Array.isArray(data)) {
+      return data as MenuItem[];
+    }
+
+    if (typeof data === "object") {
+      Object.values(data).forEach((value) => {
         result.push(...extractItems(value));
-      }
-    });
+      });
+    }
 
     return result;
   };
 
-  const allItems = extractItems(menuData);
+  const allItems: MenuItem[] = extractItems(menuData);
 
-  // ✅ SEARCH FILTER
+  // ✅ SEARCH FILTER (SAFE)
   const filtered = allItems.filter(
-    (item: any) =>
+    (item) =>
       item?.name && item.name.toLowerCase().includes(search.toLowerCase()),
   );
 
@@ -35,7 +49,7 @@ export default function MenuCardPage() {
   return (
     <section className="min-h-screen flex items-center justify-center bg-[#FFF6E5] px-4 py-6">
       <div className="w-full max-w-md rounded-3xl bg-white shadow-xl border border-[#F8D7DA] p-5">
-        {/* 🔥 HEADER */}
+        {/* HEADER */}
         <div className="text-center mb-6">
           <div className="flex justify-center mb-3">
             <Image
@@ -60,7 +74,7 @@ export default function MenuCardPage() {
           </p>
         </div>
 
-        {/* 🔍 SEARCH */}
+        {/* SEARCH */}
         <div className="mb-6">
           <input
             type="text"
@@ -71,14 +85,14 @@ export default function MenuCardPage() {
           />
         </div>
 
-        {/* 🍰 MENU LIST */}
+        {/* MENU LIST */}
         <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
           {displayItems.length === 0 ? (
             <p className="text-center text-sm text-gray-500">
               No items found 😕
             </p>
           ) : (
-            displayItems.map((item: any, index: number) => (
+            displayItems.map((item, index) => (
               <div
                 key={`${item.id}-${index}`}
                 className="flex justify-between items-center gap-3 bg-[#FFF6E5] border border-[#F8D7DA] rounded-xl p-3 hover:shadow-md transition"

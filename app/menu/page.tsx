@@ -9,22 +9,36 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search } from "lucide-react";
 import toast from "react-hot-toast";
 
+// ✅ TYPES
+type MenuData = typeof menuData;
+type MainCategory = keyof MenuData;
+
+type MenuItem = {
+  id: number;
+  name: string;
+  price: number;
+  image: string;
+  desc: string;
+  features?: string[];
+};
+
 export default function MenuPage() {
   const params = useSearchParams();
 
-  const [main, setMain] = useState("bakery");
-  const [sub, setSub] = useState("");
+  const [main, setMain] = useState<MainCategory>("bakery");
+  const [sub, setSub] = useState<string>("");
   const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState<any>(null);
+  const [selected, setSelected] = useState<MenuItem | null>(null);
 
   const { addToCart } = useCart();
 
-  // ✅ ROUTE HANDLING
+  // ✅ ROUTE HANDLING (FIXED)
   useEffect(() => {
-    const category = params.get("category");
+    const categoryParam = params.get("category");
     const subCategory = params.get("sub");
 
-    if (category && menuData[category]) {
+    if (categoryParam && categoryParam in menuData) {
+      const category = categoryParam as MainCategory;
       setMain(category);
     }
 
@@ -33,32 +47,37 @@ export default function MenuPage() {
     }
   }, [params]);
 
-  // ✅ FLATTEN (WORKS FOR ALL LEVELS)
-  const flatten = (obj: any): any[] => {
+  // ✅ FLATTEN (TYPED)
+  const flatten = (obj: unknown): MenuItem[] => {
     if (!obj) return [];
-    return Object.values(obj).flatMap((val: any) =>
-      Array.isArray(val) ? val : flatten(val),
-    );
+
+    if (Array.isArray(obj)) return obj as MenuItem[];
+
+    if (typeof obj === "object") {
+      return Object.values(obj).flatMap((val) => flatten(val));
+    }
+
+    return [];
   };
 
   const allItems = flatten(menuData);
 
-  // ✅ SAFE SEARCH
+  // ✅ SEARCH SAFE
   const searchResults = allItems.filter(
-    (item: any) =>
+    (item) =>
       item?.name && item.name.toLowerCase().includes(search.toLowerCase()),
   );
 
-  const currentSections = menuData[main] || {};
+  const currentSections = menuData[main];
   const subCategories = Object.keys(currentSections || {});
 
-  const getItems = () => {
+  const getItems = (): MenuItem[] => {
     if (search) return searchResults;
 
     if (!currentSections) return [];
 
-    if (sub && currentSections[sub]) {
-      const section = currentSections[sub];
+    if (sub && sub in currentSections) {
+      const section = currentSections[sub as keyof typeof currentSections];
       return Array.isArray(section) ? section : flatten(section);
     }
 
@@ -69,9 +88,8 @@ export default function MenuPage() {
 
   return (
     <div className="bg-[#fffaf5] min-h-screen">
-      {/* 🔥 PREMIUM HERO */}
+      {/* HERO */}
       <section className="relative py-20 text-center overflow-hidden">
-        {/* Background blobs */}
         <div className="absolute top-[-100px] left-[-100px] w-[300px] h-[300px] bg-pink-200 rounded-full blur-3xl opacity-40"></div>
         <div className="absolute bottom-[-100px] right-[-100px] w-[300px] h-[300px] bg-yellow-200 rounded-full blur-3xl opacity-40"></div>
 
@@ -91,7 +109,7 @@ export default function MenuPage() {
         </motion.div>
       </section>
 
-      {/* 🔍 SEARCH */}
+      {/* SEARCH */}
       <div className="max-w-4xl mx-auto px-4 mt-6">
         <div className="flex items-center bg-white rounded-full shadow-md px-4 py-2">
           <Search size={18} className="text-gray-400" />
@@ -104,10 +122,10 @@ export default function MenuPage() {
         </div>
       </div>
 
-      {/* 🍰 MAIN CATEGORY */}
+      {/* MAIN CATEGORY */}
       {!search && (
         <div className="flex justify-center gap-4 mt-6 flex-wrap">
-          {["bakery", "cafe"].map((c) => (
+          {(["bakery", "cafe"] as MainCategory[]).map((c) => (
             <button
               key={c}
               onClick={() => {
@@ -124,7 +142,7 @@ export default function MenuPage() {
         </div>
       )}
 
-      {/* 🧁 SUB CATEGORY */}
+      {/* SUB CATEGORY */}
       {!search && (
         <div className="flex justify-center gap-3 mt-4 flex-wrap">
           {subCategories.map((s) => (
@@ -141,27 +159,26 @@ export default function MenuPage() {
         </div>
       )}
 
-      {/* 💎 TITLE */}
+      {/* TITLE */}
       <h2 className="text-center text-2xl font-bold mt-10 text-[#5A3E36] capitalize">
         {search ? "Search Results" : sub || main}
       </h2>
 
-      {/* ❌ EMPTY */}
+      {/* EMPTY */}
       {items.length === 0 && (
         <p className="text-center mt-10 text-gray-500">No items found 😔</p>
       )}
 
-      {/* 🔥 GRID */}
+      {/* GRID */}
       <div className="max-w-7xl mx-auto px-4 py-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-        {items.map((item: any, i: number) => (
+        {items.map((item, i) => (
           <motion.div
-            key={`${item.id}-${i}`} // ✅ FIXED
+            key={`${item.id}-${i}`}
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
             className="group relative rounded-3xl overflow-hidden bg-white shadow-md hover:shadow-2xl hover:-translate-y-2 transition duration-300"
           >
-            {/* IMAGE */}
             <div className="relative h-56 overflow-hidden">
               <Image
                 src={item.image}
@@ -170,10 +187,8 @@ export default function MenuPage() {
                 className="object-cover group-hover:scale-110 transition duration-500"
               />
 
-              {/* OVERLAY */}
               <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition" />
 
-              {/* BUTTONS */}
               <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 opacity-0 group-hover:opacity-100 transition">
                 <button
                   onClick={() => {
@@ -194,21 +209,18 @@ export default function MenuPage() {
               </div>
             </div>
 
-            {/* INFO */}
             <div className="p-4 text-center">
               <h3 className="font-semibold text-[#5A3E36] text-lg">
                 {item.name}
               </h3>
-
               <p className="text-sm text-gray-500 mt-1">{item.desc}</p>
-
               <p className="font-bold mt-2 text-[#5A3E36]">₹{item.price}</p>
             </div>
           </motion.div>
         ))}
       </div>
 
-      {/* 🔥 MODAL */}
+      {/* MODAL */}
       <AnimatePresence>
         {selected && (
           <motion.div
@@ -230,7 +242,7 @@ export default function MenuPage() {
               <p className="text-gray-600 mb-3">{selected.desc}</p>
 
               <ul className="text-sm mb-4">
-                {selected.features?.map((f: string, i: number) => (
+                {selected.features?.map((f, i) => (
                   <li key={i}>• {f}</li>
                 ))}
               </ul>

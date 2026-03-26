@@ -5,20 +5,42 @@ import { productsData } from "../../data/productsData";
 import Image from "next/image";
 import { motion } from "framer-motion";
 
+// ✅ TYPES
+type ProductsData = typeof productsData;
+type Category = keyof ProductsData;
+
+type ProductItem = {
+  id: number;
+  name: string;
+  image: string;
+};
+
 export default function ProductCategoryPage() {
   const params = useParams();
-  const category = params.category as string;
 
-  const items = productsData[category] || [];
+  // ✅ SAFE CATEGORY
+  const categoryParam = params.category as string;
+
+  let items: ProductItem[] = [];
+
+  if (categoryParam && categoryParam in productsData) {
+    const category = categoryParam as Category;
+    items = productsData[category];
+  }
 
   return (
     <div className="bg-[#FFF6E5] min-h-screen">
       {/* HERO */}
       <div className="h-[200px] bg-gradient-to-r from-pink-200 to-pink-100 flex items-center justify-center">
         <h1 className="text-3xl font-bold capitalize text-[#5A3E36]">
-          {category}
+          {categoryParam}
         </h1>
       </div>
+
+      {/* EMPTY STATE */}
+      {items.length === 0 && (
+        <p className="text-center mt-10 text-gray-500">No items found 😔</p>
+      )}
 
       {/* ITEMS */}
       <div className="max-w-6xl mx-auto px-4 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">

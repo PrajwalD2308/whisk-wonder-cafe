@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "i.pinimg.com",
       },
+      {
+        protocol: "https",
+        hostname: "**", // 🔥 TEMP FIX (for ngrok demo)
+      },
     ],
 
     formats: ["image/avif", "image/webp"], // 🚀 faster images

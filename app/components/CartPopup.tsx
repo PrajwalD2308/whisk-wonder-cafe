@@ -1,18 +1,23 @@
 "use client";
 
-import { useCart } from "../context/CartContext";
+import { useCart, CartItem } from "../context/CartContext";
 import { motion } from "framer-motion";
 
-export default function CartPopup({ onClose }: any) {
-  const { cart, totalPrice, increaseQty, decreaseQty, removeFromCart } =
-    useCart();
+// ✅ PROPS TYPE
+type CartPopupProps = {
+  onClose: () => void;
+};
+
+export default function CartPopup({ onClose }: CartPopupProps) {
+  const { cart, totalPrice, increaseQty, decreaseQty } = useCart();
 
   const phoneNumber = "919876543210"; // 🔥 change
 
+  // ✅ TYPE SAFE MESSAGE
   const generateMessage = () => {
     let msg = "🛒 Order:%0A";
 
-    cart.forEach((item: any) => {
+    cart.forEach((item: CartItem) => {
       msg += `${item.name} x${item.quantity} = ₹${
         item.price * item.quantity
       }%0A`;
@@ -46,7 +51,7 @@ export default function CartPopup({ onClose }: any) {
         <>
           {/* ITEMS */}
           <div className="space-y-3 max-h-[200px] overflow-y-auto">
-            {cart.map((item: any) => (
+            {cart.map((item: CartItem) => (
               <div
                 key={item.id}
                 className="flex justify-between items-center text-sm"
@@ -87,6 +92,7 @@ export default function CartPopup({ onClose }: any) {
           <a
             href={`https://wa.me/${phoneNumber}?text=${generateMessage()}`}
             target="_blank"
+            rel="noopener noreferrer"
             className="block mt-3 w-full text-center bg-green-500 text-white py-2 rounded-full text-sm"
           >
             Order on WhatsApp

@@ -9,9 +9,16 @@ import {
   useScroll,
   useTransform,
 } from "framer-motion";
-import { Heart, Award, Users, Sparkles } from "lucide-react";
+import { Heart, Award, Users, Sparkles, LucideIcon } from "lucide-react";
 
-const stats = [
+// ✅ TYPE
+type StatItem = {
+  label: string;
+  value: number;
+  icon: LucideIcon;
+};
+
+const stats: StatItem[] = [
   { label: "Happy Customers", value: 5000, icon: Users },
   { label: "Orders Delivered", value: 12000, icon: Award },
   { label: "5 Star Reviews", value: 3500, icon: Heart },
@@ -19,7 +26,7 @@ const stats = [
 ];
 
 export default function WhyChooseUs() {
-  const ref = useRef(null);
+  const ref = useRef<HTMLDivElement | null>(null);
 
   // 🌊 PARALLAX
   const { scrollYProgress } = useScroll({
@@ -35,7 +42,7 @@ export default function WhyChooseUs() {
       ref={ref}
       className="relative py-28 bg-gradient-to-b from-white to-[#FFF6E5] overflow-hidden"
     >
-      {/* 🌈 FLOATING BLOBS */}
+      {/* BLOBS */}
       <motion.div
         style={{ y: y1 }}
         className="absolute top-[-120px] left-[-120px] w-[300px] h-[300px] bg-pink-200 rounded-full blur-3xl opacity-40"
@@ -46,7 +53,7 @@ export default function WhyChooseUs() {
       />
 
       <div className="max-w-7xl mx-auto px-4 text-center relative z-10">
-        {/* 🔥 HEADING */}
+        {/* HEADING */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -61,7 +68,7 @@ export default function WhyChooseUs() {
           </p>
         </motion.div>
 
-        {/* 🎥 GRID */}
+        {/* GRID */}
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -82,10 +89,14 @@ export default function WhyChooseUs() {
   );
 }
 
-/* ================= PREMIUM STAT CARD ================= */
+/* ================= STAT CARD ================= */
 
-function StatCard({ item }: any) {
-  const ref = useRef(null);
+type StatCardProps = {
+  item: StatItem;
+};
+
+function StatCard({ item }: StatCardProps) {
+  const ref = useRef<HTMLDivElement | null>(null);
   const isInView = useInView(ref, { once: true });
 
   const count = useMotionValue(0);
@@ -98,13 +109,16 @@ function StatCard({ item }: any) {
         ease: "easeOut",
       });
 
-      count.on("change", (latest) => {
+      const unsubscribe = count.on("change", (latest) => {
         setDisplay(Math.floor(latest));
       });
 
-      return () => controls.stop();
+      return () => {
+        controls.stop();
+        unsubscribe();
+      };
     }
-  }, [isInView]);
+  }, [isInView, item.value, count]);
 
   return (
     <motion.div
@@ -121,10 +135,10 @@ function StatCard({ item }: any) {
       transition={{ duration: 0.5 }}
       className="relative group perspective"
     >
-      {/* ✨ GLOW BORDER */}
+      {/* GLOW */}
       <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-pink-300 via-orange-200 to-yellow-200 blur opacity-0 group-hover:opacity-100 transition duration-500"></div>
 
-      {/* 💎 CARD */}
+      {/* CARD */}
       <div className="relative bg-white/70 backdrop-blur-xl border border-white/40 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition duration-500">
         {/* ICON */}
         <motion.div
